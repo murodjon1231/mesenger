@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Car, Shield, Clock, Phone, User, Package, Settings } from 'lucide-react';
+import { X, Car, Shield, Clock, Phone, User, Package, Settings, Hash } from 'lucide-react';
 
 const HyundaiKiaLanding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -7,8 +7,9 @@ const HyundaiKiaLanding = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    product: '',
-    carBrand: ''
+    products: [''],
+    carBrand: '',
+    vinCode: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,7 +20,7 @@ const HyundaiKiaLanding = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setFormData({ name: '', phone: '', product: '', carBrand: '' });
+    setFormData({ name: '', phone: '', products: [''], carBrand: '', vinCode: '' });
     setIsSubmitting(false);
   };
 
@@ -30,16 +31,51 @@ const HyundaiKiaLanding = () => {
     });
   };
 
+  const handleProductChange = (index, value) => {
+    const newProducts = [...formData.products];
+    newProducts[index] = value;
+    setFormData({
+      ...formData,
+      products: newProducts
+    });
+  };
+
+  const handleProductKeyPress = (e, index) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newProducts = [...formData.products];
+      newProducts.push('');
+      setFormData({
+        ...formData,
+        products: newProducts
+      });
+    }
+  };
+
+  const removeProduct = (index) => {
+    if (formData.products.length > 1) {
+      const newProducts = formData.products.filter((_, i) => i !== index);
+      setFormData({
+        ...formData,
+        products: newProducts
+      });
+    }
+  };
+
   const sendToTelegram = async (data) => {
     const token = '7629464977:AAHKV0p_iqymDXQf9UgqM7EPCXoH4zOwPl0';
-    const chatId = '6226950895'; // Bu yerga o'zingizning chat ID ni qo'ying
+    const chatId = 'YOUR_CHAT_ID_HERE';
+    
+    const productsList = data.products.filter(p => p.trim() !== '').map((product, index) => `${index + 1}. ${product}`).join('\n');
     
     const message = `
 🚗 Yangi so'rov!
 👤 Ism: ${data.name}
 📞 Telefon: ${data.phone}
-📦 Mahsulot: ${data.product}
+📦 Mahsulotlar:
+${productsList}
 🚙 Mashina markasi: ${data.carBrand}
+🔢 VIN kod: ${data.vinCode}
 📝 So'rov turi: ${modalType === 'price' ? 'Narx so\'rash' : 'Sotib olish'}
 📅 Vaqt: ${new Date().toLocaleString('uz-UZ')}
     `;
@@ -64,8 +100,8 @@ const HyundaiKiaLanding = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.phone || !formData.product || !formData.carBrand) {
-      alert('Iltimos barcha maydonlarni to\'ldiring');
+    if (!formData.name || !formData.phone || formData.products.every(p => p.trim() === '') || !formData.carBrand) {
+      alert('Iltimos barcha majburiy maydonlarni to\'ldiring');
       return;
     }
     
@@ -84,58 +120,82 @@ const HyundaiKiaLanding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated Background */}
+        {/* Dark Animated Background */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-emerald-400 rounded-full animate-pulse blur-xl"></div>
+          <div className="absolute top-40 right-20 w-24 h-24 bg-violet-400 rounded-full animate-bounce delay-300 blur-xl"></div>
+          <div className="absolute bottom-20 left-20 w-20 h-20 bg-orange-400 rounded-full animate-ping delay-700 blur-xl"></div>
+          <div className="absolute bottom-40 right-40 w-16 h-16 bg-cyan-400 rounded-full animate-pulse delay-1000 blur-xl"></div>
+        </div>
+
+        {/* Grid Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-16 h-16 bg-blue-300 rounded-full animate-bounce delay-300"></div>
-          <div className="absolute bottom-20 left-20 w-12 h-12 bg-indigo-300 rounded-full animate-ping delay-700"></div>
-          <div className="absolute bottom-40 right-40 w-8 h-8 bg-white rounded-full animate-pulse delay-1000"></div>
+          <div className="w-full h-full" style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px'
+          }}></div>
         </div>
 
         <div className="container mx-auto px-6 text-center relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in-up">
-              <span className="bg-gradient-to-r from-red-400 to-orange-500 bg-clip-text text-transparent">
-                HYUNDAI
-              </span>
-              <span className="text-white mx-4">&</span>
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-500 bg-clip-text text-transparent">
-                KIA
-              </span>
-            </h1>
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-8">
+              <div className="inline-block p-4 bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl border border-slate-600 shadow-2xl">
+                <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-400 mb-2 animate-fade-in-up">
+                  AUTO PARTS
+                </h1>
+                <div className="flex justify-center items-center gap-6 mt-4">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-red-400 to-orange-500 bg-clip-text text-transparent">
+                    HYUNDAI
+                  </span>
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-500 bg-clip-text text-transparent">
+                    KIA
+                  </span>
+                </div>
+              </div>
+            </div>
             
-            <p className="text-xl md:text-2xl text-blue-100 mb-8 animate-fade-in-up delay-300">
-              Sifatli avtoehtiyot qismlari - Ishonchli xizmat
+            <p className="text-xl md:text-2xl text-slate-300 mb-12 animate-fade-in-up delay-300 max-w-3xl mx-auto leading-relaxed">
+              Professional avtoehtiyot qismlari - Zamonaviy yechimlar, ishonchli xizmat
             </p>
 
-            {/* Brand Logos */}
-            <div className="flex justify-center items-center gap-8 mb-12 animate-fade-in-up delay-500">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                <Car className="w-16 h-16 text-red-400 mx-auto mb-2" />
-                <p className="text-white font-semibold text-lg">HYUNDAI</p>
+            {/* Brand Cards */}
+            <div className="flex justify-center items-center gap-8 mb-16 animate-fade-in-up delay-500">
+              <div className="group bg-slate-800/50 backdrop-blur-lg rounded-3xl p-8 border border-slate-700/50 transform hover:scale-110 transition-all duration-500 shadow-2xl hover:shadow-emerald-500/20">
+                <Car className="w-20 h-20 text-red-400 mx-auto mb-4 group-hover:rotate-12 transition-transform duration-300" />
+                <h3 className="text-white font-bold text-xl mb-2">HYUNDAI</h3>
+                <p className="text-slate-400 text-sm">Original qismlar</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 transform hover:scale-105 transition-all duration-300">
-                <Settings className="w-16 h-16 text-blue-400 mx-auto mb-2" />
-                <p className="text-white font-semibold text-lg">KIA</p>
+              <div className="w-px h-20 bg-gradient-to-b from-transparent via-slate-600 to-transparent"></div>
+              <div className="group bg-slate-800/50 backdrop-blur-lg rounded-3xl p-8 border border-slate-700/50 transform hover:scale-110 transition-all duration-500 shadow-2xl hover:shadow-cyan-500/20">
+                <Settings className="w-20 h-20 text-blue-400 mx-auto mb-4 group-hover:rotate-12 transition-transform duration-300" />
+                <h3 className="text-white font-bold text-xl mb-2">KIA</h3>
+                <p className="text-slate-400 text-sm">Sifatli ehtiyot qismlar</p>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up delay-700">
+            <div className="flex flex-col sm:flex-row gap-8 justify-center animate-fade-in-up delay-700">
               <button
                 onClick={() => openModal('price')}
-                className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-2xl hover:shadow-orange-500/25 transform hover:scale-105 transition-all duration-300 hover:from-orange-600 hover:to-red-700"
+                className="group relative bg-gradient-to-r from-orange-600 to-red-700 text-white px-10 py-5 rounded-2xl text-xl font-bold shadow-2xl hover:shadow-orange-500/30 transform hover:scale-105 transition-all duration-300 overflow-hidden"
               >
-                💰 Narxni bilish
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative flex items-center justify-center gap-3">
+                  💰 Narx So'rash
+                </span>
               </button>
               <button
                 onClick={() => openModal('buy')}
-                className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300 hover:from-blue-600 hover:to-cyan-700"
+                className="group relative bg-gradient-to-r from-emerald-600 to-cyan-700 text-white px-10 py-5 rounded-2xl text-xl font-bold shadow-2xl hover:shadow-emerald-500/30 transform hover:scale-105 transition-all duration-300 overflow-hidden"
               >
-                🛒 Sotib olish
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative flex items-center justify-center gap-3">
+                  🛒 Sotib Olish
+                </span>
               </button>
             </div>
           </div>
@@ -143,46 +203,46 @@ const HyundaiKiaLanding = () => {
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse"></div>
+          <div className="w-6 h-12 border-2 border-slate-400 rounded-full flex justify-center">
+            <div className="w-1 h-4 bg-slate-400 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gradient-to-r from-gray-50 to-blue-50">
+      <section className="py-24 bg-gradient-to-r from-slate-900 to-gray-900">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-16">
-            Bizning <span className="text-blue-600">Afzalliklarimiz</span>
+          <h2 className="text-5xl font-bold text-center text-white mb-20">
+            Bizning <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Afzalliklarimiz</span>
           </h2>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
-              <div className="bg-gradient-to-r from-blue-500 to-cyan-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="w-8 h-8 text-white" />
+          <div className="grid md:grid-cols-3 gap-10 max-w-7xl mx-auto">
+            <div className="group bg-slate-800/50 backdrop-blur-lg rounded-3xl p-10 border border-slate-700/50 hover:border-emerald-500/50 transform hover:-translate-y-4 transition-all duration-500 shadow-2xl hover:shadow-emerald-500/20">
+              <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:rotate-12 transition-transform duration-300">
+                <Shield className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Kafolat</h3>
-              <p className="text-gray-600 text-center leading-relaxed">
+              <h3 className="text-2xl font-bold text-white mb-6 text-center">Kafolat</h3>
+              <p className="text-slate-300 text-center leading-relaxed text-lg">
                 Barcha mahsulotlarimizga 12 oylik kafolat beramiz. Sifat va ishonch bizning ustuvorimiz.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Clock className="w-8 h-8 text-white" />
+            <div className="group bg-slate-800/50 backdrop-blur-lg rounded-3xl p-10 border border-slate-700/50 hover:border-orange-500/50 transform hover:-translate-y-4 transition-all duration-500 shadow-2xl hover:shadow-orange-500/20">
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:rotate-12 transition-transform duration-300">
+                <Clock className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Tez Yetkazib Berish</h3>
-              <p className="text-gray-600 text-center leading-relaxed">
+              <h3 className="text-2xl font-bold text-white mb-6 text-center">Tez Yetkazib Berish</h3>
+              <p className="text-slate-300 text-center leading-relaxed text-lg">
                 Buyurtmangizni 24 soat ichida tayyor qilib, tez va xavfsiz yetkazib beramiz.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Package className="w-8 h-8 text-white" />
+            <div className="group bg-slate-800/50 backdrop-blur-lg rounded-3xl p-10 border border-slate-700/50 hover:border-violet-500/50 transform hover:-translate-y-4 transition-all duration-500 shadow-2xl hover:shadow-violet-500/20">
+              <div className="bg-gradient-to-r from-violet-500 to-purple-500 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:rotate-12 transition-transform duration-300">
+                <Package className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Keng Assortiment</h3>
-              <p className="text-gray-600 text-center leading-relaxed">
+              <h3 className="text-2xl font-bold text-white mb-6 text-center">Keng Assortiment</h3>
+              <p className="text-slate-300 text-center leading-relaxed text-lg">
                 Hyundai va Kia uchun 5000+ dan ortiq avtoehtiyot qismlari doimo mavjud.
               </p>
             </div>
@@ -193,80 +253,96 @@ const HyundaiKiaLanding = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={closeModal}></div>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full relative z-10 shadow-2xl animate-scale-in">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-800">
+          <div className="bg-slate-800 rounded-3xl p-10 max-w-lg w-full relative z-10 shadow-2xl animate-scale-in border border-slate-700">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-3xl font-bold text-white">
                 {modalType === 'price' ? '💰 Narx So\'rash' : '🛒 Sotib Olish'}
               </h3>
               <button
                 onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-xl"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="flex items-center text-gray-700 font-medium mb-2">
-                  <User className="w-4 h-4 mr-2" />
-                  Ism Familya
+                <label className="flex items-center text-slate-300 font-medium mb-3">
+                  <User className="w-5 h-5 mr-3 text-emerald-400" />
+                  Ism Familya *
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-5 py-4 bg-slate-700 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                   required
                   placeholder="Ismingizni kiriting"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-gray-700 font-medium mb-2">
-                  <Phone className="w-4 h-4 mr-2" />
-                  Telefon Raqam
+                <label className="flex items-center text-slate-300 font-medium mb-3">
+                  <Phone className="w-5 h-5 mr-3 text-cyan-400" />
+                  Telefon Raqam *
                 </label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-5 py-4 bg-slate-700 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                   required
                   placeholder="+998 90 123 45 67"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-gray-700 font-medium mb-2">
-                  <Package className="w-4 h-4 mr-2" />
-                  Mahsulot Nomi
+                <label className="flex items-center text-slate-300 font-medium mb-3">
+                  <Package className="w-5 h-5 mr-3 text-orange-400" />
+                  Mahsulotlar * <span className="text-sm text-slate-400 ml-2">(Enter bosib qo'shish mumkin)</span>
                 </label>
-                <input
-                  type="text"
-                  name="product"
-                  value={formData.product}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  required
-                  placeholder="Masalan: Tormoz kalotkasi"
-                />
+                <div className="space-y-3">
+                  {formData.products.map((product, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <span className="bg-slate-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </span>
+                      <input
+                        type="text"
+                        value={product}
+                        onChange={(e) => handleProductChange(index, e.target.value)}
+                        onKeyPress={(e) => handleProductKeyPress(e, index)}
+                        className="flex-1 px-5 py-4 bg-slate-700 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                        placeholder={`Mahsulot ${index + 1}`}
+                      />
+                      {formData.products.length > 1 && (
+                        <button
+                          onClick={() => removeProduct(index)}
+                          className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div>
-                <label className="flex items-center text-gray-700 font-medium mb-2">
-                  <Car className="w-4 h-4 mr-2" />
-                  Mashina Markasi
+                <label className="flex items-center text-slate-300 font-medium mb-3">
+                  <Car className="w-5 h-5 mr-3 text-violet-400" />
+                  Mashina Markasi *
                 </label>
                 <select
                   name="carBrand"
                   value={formData.carBrand}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-5 py-4 bg-slate-700 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all"
                   required
                 >
                   <option value="">Markani tanlang</option>
@@ -283,16 +359,31 @@ const HyundaiKiaLanding = () => {
                 </select>
               </div>
 
+              <div>
+                <label className="flex items-center text-slate-300 font-medium mb-3">
+                  <Hash className="w-5 h-5 mr-3 text-yellow-400" />
+                  VIN Kod <span className="text-sm text-slate-400">(ixtiyoriy)</span>
+                </label>
+                <input
+                  type="text"
+                  name="vinCode"
+                  value={formData.vinCode}
+                  onChange={handleInputChange}
+                  className="w-full px-5 py-4 bg-slate-700 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                  placeholder="VIN kod kiriting (17 ta belgi)"
+                  maxLength="17"
+                />
+              </div>
+
               <button
-                type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className={`w-full py-4 rounded-lg font-semibold text-white transition-all duration-300 ${
+                className={`w-full py-5 rounded-xl font-bold text-white text-lg transition-all duration-300 ${
                   isSubmitting
-                    ? 'bg-gray-400 cursor-not-allowed'
+                    ? 'bg-slate-600 cursor-not-allowed'
                     : modalType === 'price'
-                    ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 shadow-lg hover:shadow-xl'
-                    : 'bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 shadow-lg hover:shadow-xl'
+                    ? 'bg-gradient-to-r from-orange-600 to-red-700 hover:from-orange-500 hover:to-red-600 shadow-lg hover:shadow-orange-500/30 transform hover:scale-105'
+                    : 'bg-gradient-to-r from-emerald-600 to-cyan-700 hover:from-emerald-500 hover:to-cyan-600 shadow-lg hover:shadow-emerald-500/30 transform hover:scale-105'
                 }`}
               >
                 {isSubmitting ? 'Yuborilmoqda...' : 'So\'rov Yuborish'}
