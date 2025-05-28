@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Car, Shield, Clock, Phone, User, Package, Settings, Hash } from 'lucide-react';
+import { X, Car, Shield, Clock, Phone, User, Package, Settings, Hash, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 
 const HyundaiKiaLanding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -12,6 +12,7 @@ const HyundaiKiaLanding = () => {
     vinCode: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState({ show: false, type: '', message: '' });
 
   const openModal = (type) => {
     setModalType(type);
@@ -22,6 +23,13 @@ const HyundaiKiaLanding = () => {
     setIsModalOpen(false);
     setFormData({ name: '', phone: '', products: [''], carBrand: '', vinCode: '' });
     setIsSubmitting(false);
+  };
+
+  const showNotification = (type, message) => {
+    setNotification({ show: true, type, message });
+    setTimeout(() => {
+      setNotification({ show: false, type: '', message: '' });
+    }, 5000);
   };
 
   const handleInputChange = (e) => {
@@ -41,15 +49,26 @@ const HyundaiKiaLanding = () => {
   };
 
   const handleProductKeyPress = (e, index) => {
+    // Faqat Enter tugmasi uchun
     if (e.key === 'Enter') {
       e.preventDefault();
-      const newProducts = [...formData.products];
-      newProducts.push('');
-      setFormData({
-        ...formData,
-        products: newProducts
-      });
+      addProduct();
     }
+    
+    // Delete tugmasi uchun
+    if (e.key === 'Delete' && formData.products.length > 1) {
+      e.preventDefault();
+      removeProduct(index);
+    }
+  };
+
+  const addProduct = () => {
+    const newProducts = [...formData.products];
+    newProducts.push('');
+    setFormData({
+      ...formData,
+      products: newProducts
+    });
   };
 
   const removeProduct = (index) => {
@@ -64,56 +83,118 @@ const HyundaiKiaLanding = () => {
 
   const sendToTelegram = async (data) => {
     const token = '7629464977:AAHKV0p_iqymDXQf9UgqM7EPCXoH4zOwPl0';
-    const chatId = 'YOUR_CHAT_ID_HERE';
     
-    const productsList = data.products.filter(p => p.trim() !== '').map((product, index) => `${index + 1}. ${product}`).join('\n');
+    // Bir nechta chat ID'lar - bu yerga o'z ID'laringizni qo'shing
+    const chatIds = [
+      '6226950895',  // Birinchi odam
+      '47075514',   // Ikkinchi odam (o'zgartiring)
+      '987654321'    // Uchinchi odam (o'zgartiring)
+    ];
     
+    const productsList = data.products
+      .filter(p => p.trim() !== '')
+      .map((product, index) => `   ${index + 1}. ${product}`)
+      .join('\n');
+    
+    const requestType = modalType === 'price' ? '💰 Narx So\'rovi' : '🛒 Sotib Olish';
+    const currentTime = new Date().toLocaleString('uz-UZ', {
+      timeZone: 'Asia/Tashkent',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Chiroyli formatdagi habar
     const message = `
-🚗 Yangi so'rov!
-👤 Ism: ${data.name}
-📞 Telefon: ${data.phone}
-📦 Mahsulotlar:
+🚗 <b>AVTOEHTIYOT QISMLARI - YANGI SO'ROV</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 <b>Mijoz Ma'lumotlari:</b>
+   • Ism: <code>${data.name}</code>
+   • Telefon: <code>${data.phone}</code>
+
+📦 <b>Kerakli Mahsulotlar:</b>
 ${productsList}
-🚙 Mashina markasi: ${data.carBrand}
-🔢 VIN kod: ${data.vinCode}
-📝 So'rov turi: ${modalType === 'price' ? 'Narx so\'rash' : 'Sotib olish'}
-📅 Vaqt: ${new Date().toLocaleString('uz-UZ')}
+
+🚙 <b>Transport Ma'lumotlari:</b>
+   • Marka: <b>${data.carBrand}</b>
+   • VIN Kod: <code>${data.vinCode || 'Ko\'rsatilmagan'}</code>
+
+📋 <b>So'rov Turi:</b> ${requestType}
+📅 <b>Sana/Vaqt:</b> <code>${currentTime}</code>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<i>🔔 Yangi mijoz sizning xizmatlaringizga muhtoj!</i>
     `;
 
-    try {
-      const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message,
-        }),
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.error('Telegram ga yuborishda xatolik:', error);
-      return false;
+    let successCount = 0;
+    const errors = [];
+
+    // Har bir chat ID ga habar yuborish
+    for (const chatId of chatIds) {
+      try {
+        const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML'
+          }),
+        });
+        
+        if (response.ok) {
+          successCount++;
+        } else {
+          const errorData = await response.json();
+          errors.push(`Chat ID ${chatId}: ${errorData.description || 'Noma\'lum xatolik'}`);
+        }
+      } catch (error) {
+        errors.push(`Chat ID ${chatId}: Tarmoq xatosi`);
+      }
     }
+
+    return { successCount, totalCount: chatIds.length, errors };
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.phone || formData.products.every(p => p.trim() === '') || !formData.carBrand) {
-      alert('Iltimos barcha majburiy maydonlarni to\'ldiring');
+    // Validatsiya
+    if (!formData.name.trim()) {
+      showNotification('error', 'Iltimos ismingizni kiriting');
+      return;
+    }
+    
+    if (!formData.phone.trim()) {
+      showNotification('error', 'Iltimos telefon raqamingizni kiriting');
+      return;
+    }
+    
+    if (formData.products.every(p => p.trim() === '')) {
+      showNotification('error', 'Iltimos kamida bitta mahsulot kiriting');
+      return;
+    }
+    
+    if (!formData.carBrand) {
+      showNotification('error', 'Iltimos mashina markasini tanlang');
       return;
     }
     
     setIsSubmitting(true);
 
-    const success = await sendToTelegram(formData);
+    const result = await sendToTelegram(formData);
     
-    if (success) {
-      alert('So\'rov muvaffaqiyatli yuborildi!');
+    if (result.successCount > 0) {
+      showNotification('success', 
+        `So'rov muvaffaqiyatli yuborildi! (${result.successCount}/${result.totalCount} ta odamga yetkazildi)`
+      );
       closeModal();
     } else {
-      alert('Xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
+      showNotification('error', 'Xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
+      console.error('Telegram errors:', result.errors);
     }
     
     setIsSubmitting(false);
@@ -121,6 +202,24 @@ ${productsList}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
+      {/* Notification */}
+      {notification.show && (
+        <div className={`fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl border backdrop-blur-sm animate-fade-in-up ${
+          notification.type === 'success' 
+            ? 'bg-emerald-900/90 border-emerald-500 text-emerald-100' 
+            : 'bg-red-900/90 border-red-500 text-red-100'
+        }`}>
+          <div className="flex items-center gap-3">
+            {notification.type === 'success' ? (
+              <CheckCircle className="w-5 h-5 text-emerald-400" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-red-400" />
+            )}
+            <span className="font-medium">{notification.message}</span>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Dark Animated Background */}
@@ -255,7 +354,7 @@ ${productsList}
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="bg-slate-800 rounded-3xl p-10 max-w-lg w-full relative z-10 shadow-2xl animate-scale-in border border-slate-700">
+          <div className="bg-slate-800 rounded-3xl p-10 max-w-lg w-full relative z-10 shadow-2xl animate-scale-in border border-slate-700 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-3xl font-bold text-white">
                 {modalType === 'price' ? '💰 Narx So\'rash' : '🛒 Sotib Olish'}
@@ -304,32 +403,42 @@ ${productsList}
               <div>
                 <label className="flex items-center text-slate-300 font-medium mb-3">
                   <Package className="w-5 h-5 mr-3 text-orange-400" />
-                  Mahsulotlar * <span className="text-sm text-slate-400 ml-2">(Enter bosib qo'shish mumkin)</span>
+                  Mahsulotlar * 
+                  <span className="text-sm text-slate-400 ml-2 hidden md:inline">(Enter - qo'shish, Delete - o'chirish)</span>
                 </label>
                 <div className="space-y-3">
                   {formData.products.map((product, index) => (
                     <div key={index} className="flex items-center gap-3">
-                      <span className="bg-slate-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">
+                      <span className="bg-slate-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0">
                         {index + 1}
                       </span>
                       <input
                         type="text"
                         value={product}
                         onChange={(e) => handleProductChange(index, e.target.value)}
-                        onKeyPress={(e) => handleProductKeyPress(e, index)}
+                        onKeyDown={(e) => handleProductKeyPress(e, index)}
                         className="flex-1 px-5 py-4 bg-slate-700 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                         placeholder={`Mahsulot ${index + 1}`}
                       />
                       {formData.products.length > 1 && (
                         <button
                           onClick={() => removeProduct(index)}
-                          className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                          className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-700 rounded-lg transition-colors flex-shrink-0"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       )}
                     </div>
                   ))}
+                  
+                  {/* Add Product Button */}
+                  <button
+                    onClick={addProduct}
+                    className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-slate-600 rounded-xl text-slate-400 hover:text-slate-300 hover:border-slate-500 transition-all"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Mahsulot qo'shish</span>
+                  </button>
                 </div>
               </div>
 
