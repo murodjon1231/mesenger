@@ -54,7 +54,7 @@ const HyundaiKiaLanding = () => {
       e.preventDefault();
       addProduct();
     }
-    
+
     // Delete tugmasi uchun
     if (e.key === 'Delete' && formData.products.length > 1) {
       e.preventDefault();
@@ -83,19 +83,19 @@ const HyundaiKiaLanding = () => {
 
   const sendToTelegram = async (data) => {
     const token = '7629464977:AAHKV0p_iqymDXQf9UgqM7EPCXoH4zOwPl0';
-    
+
     // Bir nechta chat ID'lar - bu yerga o'z ID'laringizni qo'shing
     const chatIds = [
       '6226950895',  // Birinchi odam
       '47075514',   // Ikkinchi odam (o'zgartiring)
       '987654321'    // Uchinchi odam (o'zgartiring)
     ];
-    
+
     const productsList = data.products
       .filter(p => p.trim() !== '')
       .map((product, index) => `   ${index + 1}. ${product}`)
       .join('\n');
-    
+
     const requestType = modalType === 'price' ? '💰 Narx So\'rovi' : '🛒 Sotib Olish';
     const currentTime = new Date().toLocaleString('uz-UZ', {
       timeZone: 'Asia/Tashkent',
@@ -146,7 +146,7 @@ ${productsList}
             parse_mode: 'HTML'
           }),
         });
-        
+
         if (response.ok) {
           successCount++;
         } else {
@@ -167,28 +167,28 @@ ${productsList}
       showNotification('error', 'Iltimos ismingizni kiriting');
       return;
     }
-    
+
     if (!formData.phone.trim()) {
       showNotification('error', 'Iltimos telefon raqamingizni kiriting');
       return;
     }
-    
+
     if (formData.products.every(p => p.trim() === '')) {
       showNotification('error', 'Iltimos kamida bitta mahsulot kiriting');
       return;
     }
-    
+
     if (!formData.carBrand) {
       showNotification('error', 'Iltimos mashina markasini tanlang');
       return;
     }
-    
+
     setIsSubmitting(true);
 
     const result = await sendToTelegram(formData);
-    
+
     if (result.successCount > 0) {
-      showNotification('success', 
+      showNotification('success',
         `So'rov muvaffaqiyatli yuborildi! (${result.successCount}/${result.totalCount} ta odamga yetkazildi)`
       );
       closeModal();
@@ -196,7 +196,7 @@ ${productsList}
       showNotification('error', 'Xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
       console.error('Telegram errors:', result.errors);
     }
-    
+
     setIsSubmitting(false);
   };
 
@@ -204,11 +204,10 @@ ${productsList}
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl border backdrop-blur-sm animate-fade-in-up ${
-          notification.type === 'success' 
-            ? 'bg-emerald-900/90 border-emerald-500 text-emerald-100' 
-            : 'bg-red-900/90 border-red-500 text-red-100'
-        }`}>
+        <div className={`fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl border backdrop-blur-sm animate-fade-in-up ${notification.type === 'success'
+          ? 'bg-emerald-900/90 border-emerald-500 text-emerald-100'
+          : 'bg-red-900/90 border-red-500 text-red-100'
+          }`}>
           <div className="flex items-center gap-3">
             {notification.type === 'success' ? (
               <CheckCircle className="w-5 h-5 text-emerald-400" />
@@ -256,7 +255,7 @@ ${productsList}
                 </div>
               </div>
             </div>
-            
+
             <p className="text-xl md:text-2xl text-slate-300 mb-12 animate-fade-in-up delay-300 max-w-3xl mx-auto leading-relaxed">
               Professional avtoehtiyot qismlari - Zamonaviy yechimlar, ishonchli xizmat
             </p>
@@ -307,14 +306,13 @@ ${productsList}
           </div>
         </div>
       </section>
-
       {/* Features Section */}
       <section className="py-24 bg-gradient-to-r from-slate-900 to-gray-900">
         <div className="container mx-auto px-6">
           <h2 className="text-5xl font-bold text-center text-white mb-20">
             Bizning <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Afzalliklarimiz</span>
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-10 max-w-7xl mx-auto">
             <div className="group bg-slate-800/50 backdrop-blur-lg rounded-3xl p-10 border border-slate-700/50 hover:border-emerald-500/50 transform hover:-translate-y-4 transition-all duration-500 shadow-2xl hover:shadow-emerald-500/20">
               <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:rotate-12 transition-transform duration-300">
@@ -349,11 +347,171 @@ ${productsList}
         </div>
       </section>
 
+      {/* Popular Products Section */}
+      <section className="py-24 bg-gradient-to-b from-gray-900 to-slate-900">
+        <div className="container mx-auto px-6">
+          <h2 className="text-5xl font-bold text-center text-white mb-20">
+            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">Mashhur</span> Mahsulotlar
+          </h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {[
+              { name: 'Tormoz Kolodkasi', price: '120,000 - 250,000', img: '/img.png', color: 'from-red-500 to-pink-500' },
+              { name: 'Motor Yog\'i', price: '80,000 - 150,000', img: '/img1.png', color: 'from-blue-500 to-cyan-500' },
+              { name: 'Filtr To\'plami', price: '45,000 - 85,000', img: '/img2.png', color: 'from-green-500 to-emerald-500' },
+              { name: 'Moy Filtri', price: '25,000 - 65,000', img: '/img3.png', color: 'from-yellow-500 to-orange-500' }
+            ].map((product, index) => (
+              <div key={index} className="group bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-slate-700/50 hover:border-orange-500/50 transform hover:-translate-y-2 transition-all duration-300 shadow-xl hover:shadow-orange-500/20">
+                <div className={`bg-gradient-to-r ${product.color} w-22 h-22 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <img src={product.img} alt={product.name} className="p-2" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2 text-center">{product.name}</h3>
+                <p className="text-orange-400 font-semibold text-center mb-4">{product.price} so'm</p>
+                <button
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      products: [product.name]
+                    }));
+                    openModal('price');
+                  }}
+                  className="w-full bg-gradient-to-r from-slate-700 to-slate-600 text-white py-2 rounded-lg font-medium hover:from-orange-600 hover:to-red-600 transition-all duration-300"
+                >
+                  Narxini Bilish
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Working Hours & Contact */}
+      <section className="py-24 bg-gradient-to-r from-slate-800 to-gray-800">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-16 max-w-6xl mx-auto">
+            <div className="bg-slate-900/50 backdrop-blur-lg rounded-3xl p-10 border border-slate-700/50">
+              <h3 className="text-3xl font-bold text-white mb-8 text-center">
+                <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Ish Vaqti</span>
+              </h3>
+              <div className="space-y-4">
+                {[
+                  { day: 'Dushanba', time: '09:00 - 19:00', active: true },
+                  { day: 'Seshanba', time: '09:00 - 19:00', active: true },
+                  { day: 'Chorshanba', time: '09:00 - 19:00', active: true },
+                  { day: 'Payshanba', time: '09:00 - 19:00', active: true },
+                  { day: 'Juma', time: '09:00 - 19:00', active: true },
+                  { day: 'Shanba', time: '09:00 - 19:00', active: true },
+                  { day: 'Yakshanba', time: '09:00 - 17:00', active: true }
+                ].map((schedule, index) => (
+                  <div key={index} className={`flex justify-between items-center p-4 rounded-xl ${schedule.active ? 'bg-emerald-900/30 border border-emerald-500/30' : 'bg-red-900/30 border border-red-500/30'
+                    }`}>
+                    <span className="text-white font-medium">{schedule.day}</span>
+                    <span className={`font-semibold ${schedule.active ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {schedule.time}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-slate-900/50 backdrop-blur-lg rounded-3xl p-10 border border-slate-700/50">
+              <h3 className="text-3xl font-bold text-white mb-8 text-center">
+                <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">Aloqa</span>
+              </h3>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl">
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 w-12 h-12 rounded-xl flex items-center justify-center">
+                    <Phone className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-slate-400 text-sm">Telefon</p>
+                    <p className="text-white font-semibold text-lg">+998 90 324 94 97</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl">
+                  <div className="bg-gradient-to-r from-blue-500 to-cyan-500 w-12 h-12 rounded-xl flex items-center justify-center">
+                    <span className="text-white font-bold">@</span>
+                  </div>
+                  <div>
+                    <p className="text-slate-400 text-sm">Telegram</p>
+                    <p className="text-white font-semibold text-lg">@Hyundai_kiamobis</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-4">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="bg-gradient-to-r from-purple-500 to-violet-500 w-12 h-12 rounded-xl flex items-center justify-center">
+                      <span className="text-white text-xl">📍</span>
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm">Manzil</p>
+                      <p className="text-white font-semibold">S.Yusupov, Little Ring Road, 100123, Tashkent, Узбекистан</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl overflow-hidden">
+                    <iframe
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6017.304405795764!2d69.19800286460733!3d41.28181411370707!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae8a287b54c777%3A0xc6393f18622d896d!2sAvtomarket%20HYUNDAI%20KIA%20Toshkent.!5e0!3m2!1sru!2s!4v1748411748160!5m2!1sru!2s"
+                      width="100%"
+                      height="200"
+                      style={{ border: 0 }}
+                      allowFullScreen=""
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-gradient-to-b from-gray-900 to-slate-900">
+        <div className="container mx-auto px-6">
+          <h2 className="text-5xl font-bold text-center text-white mb-20">
+            Ko'p <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">So'raladigan</span> Savollar
+          </h2>
+
+          <div className="max-w-4xl mx-auto space-y-6">
+            {[
+              {
+                question: "Mahsulotlar original emasmi?",
+                answer: "Ha, biz faqat original va sertifikatlangan ehtiyot qismlar bilan ishlaymiz. Barcha mahsulotlar rasmiy distributorlardan olinadi."
+              },
+              {
+                question: "Yetkazib berish qancha vaqt oladi?",
+                answer: "Odatda 1 kun ichida yetkazib beramiz. Maxsus buyurtmalar uchun 8-12 kun vaqt ketishi mumkin."
+              },
+              {
+                question: "To'lov usullari qanday?",
+                answer: "Naqd pul, plastik karta va bank o'girimi orqali to'lov qabul qilamiz. Yetkazib berganda ham to'lash mumkin."
+              },
+              {
+                question: "Kafolat muddati qancha?",
+                answer: "Barcha mahsulotlarimizga 1 oylik kafolat beramiz. Kafolat muddatida bepul almashtirish xizmati mavjud."
+              }
+            ].map((faq, index) => (
+              <div key={index} className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-8 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <span className="bg-gradient-to-r from-violet-500 to-purple-500 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold mr-4">
+                    {index + 1}
+                  </span>
+                  {faq.question}
+                </h3>
+                <p className="text-slate-300 leading-relaxed pl-12">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal}></div>
-          
+
           <div className="bg-slate-800 rounded-3xl p-10 max-w-lg w-full relative z-10 shadow-2xl animate-scale-in border border-slate-700 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-3xl font-bold text-white">
@@ -403,7 +561,7 @@ ${productsList}
               <div>
                 <label className="flex items-center text-slate-300 font-medium mb-3">
                   <Package className="w-5 h-5 mr-3 text-orange-400" />
-                  Mahsulotlar * 
+                  Mahsulotlar *
                   <span className="text-sm text-slate-400 ml-2 hidden md:inline">(Enter - qo'shish, Delete - o'chirish)</span>
                 </label>
                 <div className="space-y-3">
@@ -430,7 +588,7 @@ ${productsList}
                       )}
                     </div>
                   ))}
-                  
+
                   {/* Add Product Button */}
                   <button
                     onClick={addProduct}
@@ -487,13 +645,12 @@ ${productsList}
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className={`w-full py-5 rounded-xl font-bold text-white text-lg transition-all duration-300 ${
-                  isSubmitting
-                    ? 'bg-slate-600 cursor-not-allowed'
-                    : modalType === 'price'
+                className={`w-full py-5 rounded-xl font-bold text-white text-lg transition-all duration-300 ${isSubmitting
+                  ? 'bg-slate-600 cursor-not-allowed'
+                  : modalType === 'price'
                     ? 'bg-gradient-to-r from-orange-600 to-red-700 hover:from-orange-500 hover:to-red-600 shadow-lg hover:shadow-orange-500/30 transform hover:scale-105'
                     : 'bg-gradient-to-r from-emerald-600 to-cyan-700 hover:from-emerald-500 hover:to-cyan-600 shadow-lg hover:shadow-emerald-500/30 transform hover:scale-105'
-                }`}
+                  }`}
               >
                 {isSubmitting ? 'Yuborilmoqda...' : 'So\'rov Yuborish'}
               </button>
